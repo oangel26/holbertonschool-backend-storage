@@ -15,7 +15,7 @@ def update_topics(mongo_collection, name, topics):
     name (string) will be the school name to update
     topics (list of strings) will be the list of topics approached in the school
     """
-    result = mongo_collection.update_one({'name': name}, {'$set': {'topics': topics}})
+    result = mongo_collection.update_many({'name': name}, {'$set': {'topics': topics}})
 
 
 if __name__ == "__main__":
