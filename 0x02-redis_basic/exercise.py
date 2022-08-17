@@ -5,7 +5,7 @@ Writing strings to Redis
 
 import uuid
 import redis
-from typing import Union, Optional, Callable
+from typing import Union
 
 
 class Cache:
@@ -24,7 +24,7 @@ class Cache:
         data in Redis using the random key and return the key.
         """
         key = str(uuid.uuid4())
-        self._redis.set(key, str(data))
+        self._redis.set(key, data)
         return key
 
     """
@@ -36,3 +36,15 @@ class Cache:
     def get_str(self):
         Parametrize Cache.get with the str conversion function
     """
+
+if __name__ == "__main__":
+    Cache = __import__('exercise').Cache
+
+    cache = Cache()
+
+    data = b"hello"
+    key = cache.store(data)
+    print(key)
+
+    local_redis = redis.Redis()
+    print(local_redis.get(key))
