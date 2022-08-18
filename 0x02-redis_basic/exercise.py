@@ -5,7 +5,7 @@ Writing strings to Redis
 
 import uuid
 import redis
-from typing import Union
+from typing import Union, Optional, Callable
 
 
 class Cache:
@@ -15,7 +15,7 @@ class Cache:
     instance using flushdb.
     """
     def __init__(self):
-        self._redis = redis.Redis()
+        self._redis = redis.Redis(charset="utf-8")
         self._redis.flushdb()
 
     def store(self, data: Union[int, str, bytes, float]) -> str:
@@ -27,19 +27,34 @@ class Cache:
         self._redis.set(key, data)
         return key
 
-    """
-    def get(self, key: str, fn):
+
+    def get(self, key: str, fn: Optional[Callable] =
+            None) -> Union[str, bytes, int, float]:
+        """
         Optional[Callable[[Union[str]], ]]
         Method that take a key string argument and an optional Callable
         argument named fn to onvert the data back to the desired format.
+        """
+        result = self._redis.get(key)
+        if fn:
+            return fn(result)
+        return result
 
-    def get_str(self):
+
+    def get_str(self, key) -> str:
+        """
         Parametrize Cache.get with the str conversion function
-    """
+        """
+        return self.get(key, str)
+
+    def get_int(self, key) -> int:
+        """
+        Parametrize Cache.get with the str conversion function
+        """
+        return self.get(key, int)
+
 
 if __name__ == "__main__":
-    Cache = __import__('exercise').Cache
-
     cache = Cache()
 
     data = b"hello"
@@ -48,3 +63,13 @@ if __name__ == "__main__":
 
     local_redis = redis.Redis()
     print(local_redis.get(key))
+
+    TEST_CASES = {
+        b"foo": None,
+        123: int,
+        "bar": lambda d: d.decode("utf-8")
+    }
+
+    for value, fn in TEST_CASES.items():
+        key = cache.store(value)
+        assert cache.get(key, fn=fn) == value
